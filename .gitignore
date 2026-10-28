@@ -1,0 +1,17 @@
+# Published API build (made from the Otago Lands project)
+API/
+
+# Design and plan notes
+docs/
+
+# Test drawings downloaded from the page
+Shapes/
+
+# Saved lands data (changes on every Save)
+lands.json
+
+# .NET build output and Visual Studio files
+.vs/
+bin/
+obj/
+*.csproj.user

@@ -1,0 +1,183 @@
+/* The whole page: panel on the left, map on the right, full screen height */
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  color: #222;
+}
+
+/* Left panel */
+#panel {
+  width: 300px;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  background: #f6f7f7;
+  border-right: 1px solid #ddd;
+}
+
+#panel h1 {
+  font-size: 20px;
+  margin: 0 0 8px;
+}
+
+#panel label {
+  display: block;
+  margin-top: 14px;
+  font-weight: bold;
+}
+
+#panel select {
+  width: 100%;
+  margin-top: 4px;
+  padding: 5px;
+  font-size: 14px;
+}
+
+/* The Properties / Parcels switch */
+#showSwitch {
+  margin: 14px 0 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#showSwitch legend {
+  font-weight: bold;
+}
+
+#showSwitch label {
+  display: inline;
+  margin: 0 12px 0 0;
+  font-weight: normal;
+}
+
+/* The "Merge lands", "Find land by drawing" and "Find land from a shapefile" sections */
+#mergeSection,
+#pointSection,
+#fileSection {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #ccc;
+}
+
+#mergeSection h2,
+#pointSection h2,
+#fileSection h2 {
+  font-size: 16px;
+  margin: 0;
+}
+
+#mergeSection .hint,
+#pointSection .hint,
+#fileSection .hint {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #555;
+}
+
+#fileInput {
+  width: 100%;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+#panel input[type="number"] {
+  width: 100%;
+  margin-top: 4px;
+  padding: 5px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+#panel button {
+  margin-top: 12px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#saveButton {
+  width: 100%;
+}
+
+/* The list of drawn points (number, Lat box, Lng box, remove button)
+   and the merge list (number, land name, remove button) */
+#pointTable,
+#mergeTable {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 13px;
+}
+
+#pointTable th,
+#mergeTable th {
+  text-align: left;
+  color: #555;
+}
+
+#pointTable th:first-child,
+#mergeTable th:first-child {
+  width: 18px;
+}
+
+#pointTable th:last-child,
+#mergeTable th:last-child {
+  width: 32px;
+}
+
+#pointTable td,
+#mergeTable td {
+  padding: 2px;
+}
+
+#mergeTable button {
+  margin-top: 0;
+  padding: 2px 6px;
+}
+
+#pointTable input[type="number"] {
+  margin-top: 0;
+  padding: 3px;
+  font-size: 13px;
+}
+
+#pointTable button {
+  margin-top: 0;
+  padding: 2px 6px;
+}
+
+#statusText {
+  color: #555;
+  font-style: italic;
+}
+
+/* Right side: the map takes all the space that is left */
+#map {
+  flex: 1;
+}
+
+/* Phone-width screens: panel on top, map below */
+@media (max-width: 700px) {
+  body {
+    flex-direction: column;
+  }
+
+  #panel {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+  }
+
+  #map {
+    flex: none;
+    height: 60vh;
+  }
+}

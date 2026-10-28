@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Otago Land Finder</title>
+  <link rel="stylesheet" href="https://js.arcgis.com/5.1/esri/themes/light/main.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside id="panel">
+    <h1>Otago Land Finder</h1>
+
+    <label for="districtSelect">1. District</label>
+    <select id="districtSelect" disabled></select>
+
+    <label for="areaSelect">2. Area</label>
+    <select id="areaSelect" disabled></select>
+
+    <label for="roadSelect">3. Road</label>
+    <select id="roadSelect" disabled></select>
+
+    <fieldset id="showSwitch">
+      <legend>4. Show</legend>
+      <label><input type="radio" id="propertiesRadio" name="show" value="properties" checked> Properties</label>
+      <label><input type="radio" id="parcelsRadio" name="show" value="parcels"> Parcels</label>
+    </fieldset>
+
+    <label for="landSelect">5. Land</label>
+    <select id="landSelect" disabled></select>
+
+    <button type="button" id="saveButton" disabled>Save lands</button>
+
+    <section id="mergeSection">
+      <h2>Merge lands</h2>
+      <p class="hint">Pick a land, then press Add to merge. Add all the lands you want to join. They must touch each other. Press Merge to make them one land. It keeps the first land's name and adds up the prices and areas.</p>
+      <button type="button" id="addMergeButton">Add to merge</button>
+      <button type="button" id="mergeButton">Merge</button>
+
+      <table id="mergeTable" hidden>
+        <thead>
+          <tr><th>#</th><th>Land</th><th></th></tr>
+        </thead>
+        <tbody id="mergeList"></tbody>
+      </table>
+    </section>
+
+    <section id="pointSection">
+      <h2>Find land by drawing</h2>
+      <p class="hint">Press Add points, then click the map. Change a number to move a point. Press Finish to find the land: 1 point finds one land, 2 points make a line, 3 or more make a shape. Press Download shape to save your drawing as a shapefile.</p>
+      <button type="button" id="addButton">Add points</button>
+      <button type="button" id="finishButton">Finish</button>
+      <button type="button" id="downloadButton">Download shape</button>
+
+      <table id="pointTable" hidden>
+        <thead>
+          <tr><th>#</th><th>Lat</th><th>Lng</th><th></th></tr>
+        </thead>
+        <tbody id="pointList"></tbody>
+      </table>
+    </section>
+
+    <section id="fileSection">
+      <h2>Find land from a shapefile</h2>
+      <p class="hint">Pick a .zip that holds the .shp, .shx, .dbf and .prj files. Then press Find land.</p>
+      <input type="file" id="fileInput" accept=".zip">
+      <button type="button" id="findFileButton" disabled>Find land</button>
+    </section>
+
+    <p><strong>Address:</strong> <span id="addressText">-</span></p>
+    <p id="statusText">Loading the map…</p>
+  </aside>
+
+  <div id="map"></div>
+  <script src="https://cdn.jsdelivr.net/npm/shpjs@6.2.0/dist/shp.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mapbox/shp-write@0.4.3/shpwrite.js"></script>
+  <script type="module" src="https://js.arcgis.com/5.1/"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
