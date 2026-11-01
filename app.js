@@ -249,6 +249,13 @@ function formatMoney(value) {
   return "$" + value.toLocaleString("en-NZ");
 }
 
+function formatHectares(squareMeters) {
+  if (!squareMeters) {
+    return "-";
+  }
+  return (squareMeters / 10000).toLocaleString("en-NZ", { maximumFractionDigits: 3 }) + " ha";
+}
+
 
 
 function clearChosen() {
@@ -705,46 +712,75 @@ async function loadAddress(landShape) {
 function openLandPopup(land, address, gap) {
   const a = land.attributes;
   let title = "";
+  let band = "";
   let rows = [];
+  let record = null;
 
   if (showParcels()) {
     title = address || a.appellation || "Parcel";
+    band =
+      "<div>" +
+      "<div class='popup-label'>Survey area</div>" +
+      "<div class='popup-big'>" + formatArea(a.survey_area) + "</div>" +
+      "<div class='popup-small'>" + formatHectares(a.survey_area) + "</div>" +
+      "</div>";
     rows = [
-      ["Address", address],
       ["Legal name", a.appellation],
       ["Title", a.titles],
-      ["Survey area", formatArea(a.survey_area)],
       ["Land district", a.land_district],
       ["Parcel type", a.parcel_intent]
     ];
+    record = makeSavedParcel(land, address);
   } else {
     title = address || a.LegalDescription || "Property";
+    band =
+      "<div>" +
+      "<div class='popup-label'>Capital value</div>" +
+      "<div class='popup-big'>" + formatMoney(a.CapitalValue) + "</div>" +
+      "<div class='popup-small'>Land " + formatMoney(a.LandValue) + "</div>" +
+      "</div>" +
+      "<div>" +
+      "<div class='popup-label'>Area</div>" +
+      "<div class='popup-big'>" + formatArea(a.Hectares * 10000) + "</div>" +
+      "<div class='popup-small'>" + formatHectares(a.Hectares * 10000) + "</div>" +
+      "</div>";
     rows = [
-      ["Address", address],
       ["Legal description", a.LegalDescription],
       ["Title", a.CertificateOfTitle],
       ["Valuation number", a.ValuationReference],
-      ["Land value", formatMoney(a.LandValue)],
-      ["Capital value", formatMoney(a.CapitalValue)],
-      ["Area", formatArea(a.Hectares * 10000)],
       ["Council", a.RatingAuthority]
     ];
+    record = makeSavedLand(land);
   }
 
   if (gap !== null) {
     rows.push(["Gap to road", gap.toFixed(2) + " m"]);
   }
 
+  let table = "<table class='popup-facts'>";
+  for (const row of rows) {
+    table = table + "<tr><th>" + row[0] + "</th><td>" + (row[1] || "-") + "</td></tr>";
+  }
+  table = table + "</table>";
+
   const centre = labelPointOperator.execute(land.geometry);
   const centreInMetres = projectOperator.execute(centre, { wkid: 2193 });
-  rows.push(["Centre X (m)", centreInMetres.x.toFixed(2)]);
-  rows.push(["Centre Y (m)", centreInMetres.y.toFixed(2)]);
 
-  let content = "<table>";
-  for (const row of rows) {
-    content = content + "<tr><th>" + row[0] + "</th><td>" + (row[1] || "-") + "</td></tr>";
-  }
-  content = content + "</table>";
+  const content = document.createElement("div");
+  content.innerHTML =
+    "<div class='popup-band'>" + band + "</div>" +
+    table +
+    "<div class='popup-centre'>Centre (NZTM, m): X " + centreInMetres.x.toFixed(2) + ", Y " + centreInMetres.y.toFixed(2) + "</div>" +
+    "<div class='popup-save'>" +
+    "<button type='button'>Save this land</button>" +
+    "<div class='popup-message'></div>" +
+    "</div>";
+
+  const button = content.querySelector("button");
+  const message = content.querySelector(".popup-message");
+  button.addEventListener("click", function () {
+    saveOneLand(record, button, message);
+  });
 
   view.openPopup({
     title: title,
@@ -781,6 +817,56 @@ function makeSavedLand(property) {
   };
 }
 
+function makeSavedParcel(parcel, address) {
+  const a = parcel.attributes;
+  return {
+    key: "parcel-" + a.id,
+    fields: {
+      address: address,
+      legalName: a.appellation,
+      title: a.titles,
+      surveyAreaM2: a.survey_area,
+      landDistrict: a.land_district,
+      parcelType: a.parcel_intent
+    }
+  };
+}
+
+async function sendLands(lands) {
+  const response = await fetch(SAVE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(lands)
+  });
+  if (!response.ok) {
+    throw new Error("The server answered " + response.status);
+  }
+  return await response.json();
+}
+
+async function saveOneLand(record, button, message) {
+  button.disabled = true;
+  button.textContent = "Saving…";
+  message.className = "popup-message";
+  message.textContent = "";
+  try {
+    const result = await sendLands([record]);
+    button.className = "saved";
+    button.textContent = "✓ Saved";
+    if (result.added > 0) {
+      message.textContent = "Added to lands.json.";
+    } else {
+      message.textContent = "Updated in lands.json.";
+    }
+  } catch (error) {
+    console.error(error);
+    button.disabled = false;
+    button.textContent = "Save this land";
+    message.className = "popup-message bad";
+    message.textContent = "Could not save. Is the Otago Lands API running?";
+  }
+}
+
 async function saveLands() {
   const lands = [];
   for (const property of properties) {
@@ -790,15 +876,7 @@ async function saveLands() {
   setBusy(true);
   setStatus("Saving " + lands.length + " lands…");
   try {
-    const response = await fetch(SAVE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(lands)
-    });
-    if (!response.ok) {
-      throw new Error("The server answered " + response.status);
-    }
-    const result = await response.json();
+    const result = await sendLands(lands);
     setStatus("Saved: " + result.added + " new, " + result.updated + " updated.");
   } catch (error) {
     console.error(error);
